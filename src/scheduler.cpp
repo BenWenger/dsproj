@@ -112,6 +112,29 @@ void Scheduler::assignProcs()
     //  keep looping as long as we have waiting jobs and available processors
     while(i != waitQueue.end() && !availProcs.empty())
     {
+        // can we service this job?
+        if(availProcs.size() >= i->second.info.numProcs)
+        {
+            allocateProcessors(i->second);
+            activeJobs.push_back( std::move(i->second) );
+            i = waitQueue.erase(i);
+        }
+        else
+            ++i;
+    }
 
+    needProcAssign = false;
+}
+
+void Scheduler::allocateProcessors(ScheduledJob& job)
+{
+    for(unsigned i = 0; i < job.info.numProcs; ++i)
+    {
+        auto prid = availProcs.back();
+
+        job.procsUsed[i] = prid;
+        processors[prid] = job.id;
+
+        availProcs.pop_back();
     }
 }

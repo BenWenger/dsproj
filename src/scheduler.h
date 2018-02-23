@@ -37,6 +37,7 @@ private:
     void        assignProcs();
 
     void        freeProcessors(const ScheduledJob& job);
+    void        allocateProcessors(ScheduledJob& job);
 };
 
 

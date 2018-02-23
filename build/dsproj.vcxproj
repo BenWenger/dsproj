@@ -130,6 +130,7 @@
     <ClInclude Include="..\src\types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\scheduler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
