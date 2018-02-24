@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include <iostream>
 #include "types.h"
 #include "job.h"
 
@@ -13,8 +14,11 @@ class Scheduler
 {
 public:
                 Scheduler(unsigned numprocs);
-    void        addJob(const JobInfo& jobinfo);
+    bool        addJob(const JobInfo& jobinfo);
     void        tick();
+    
+    void        printActiveJobs(std::ostream& s) const;
+    void        printWaitQueue(std::ostream& s) const;
 
 private:
     typedef std::multimap<unsigned, ScheduledJob>   queue_t;

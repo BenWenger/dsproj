@@ -1,4 +1,5 @@
 
+#include <iomanip>
 #include "scheduler.h"
 
 Scheduler::Scheduler(unsigned numprocs)
@@ -14,13 +15,14 @@ Scheduler::Scheduler(unsigned numprocs)
 }
 
 
-void Scheduler::addJob(const JobInfo& jobinfo)
+bool Scheduler::addJob(const JobInfo& jobinfo)
 {
     if(jobinfo.numTicks <= 0)       // no ticks in this job -- it's immediately complete
-        return;
-
+        return false;
     if(jobinfo.numProcs <= 0)       // this job uses no processors -- this is nonsense
-        throw SchedulerException("Attempted to add a job with no processors");
+        return false;
+    if(jobinfo.numProcs > processors.size())    // requires more processors than we have
+        return false;
 
 
     ScheduledJob job;
@@ -39,6 +41,8 @@ void Scheduler::addJob(const JobInfo& jobinfo)
     // if we have the available processors to run this job, flag that we need to assign procs
     if(availProcs.size() >= jobinfo.numProcs)
         needProcAssign = true;
+
+    return true;
 }
 
 
@@ -67,6 +71,9 @@ void Scheduler::putJobInWaitQueue( ScheduledJob&& job )
 
 void Scheduler::tick()
 {
+    if(needProcAssign)
+        assignProcs();
+
     runActiveJobs();
 
     if(needProcAssign)
@@ -136,5 +143,80 @@ void Scheduler::allocateProcessors(ScheduledJob& job)
         processors[prid] = job.id;
 
         availProcs.pop_back();
+    }
+}
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+namespace
+{
+    std::string getProcString(unsigned count, const procid_t* ids)
+    {
+        std::string out;
+        for(unsigned i = 0; i < count; ++i)
+        {
+            if(i)       out += ", ";
+            out += std::to_string(ids[i]);
+        }
+        return out;
+    }
+}
+
+void Scheduler::printActiveJobs(std::ostream& s) const
+{
+    using namespace std;
+
+    s << "Active Jobs:\n";
+    s << "Job Id  | Job Description         | Ticks Left |  Procs Used\n";
+    s << "----------------------------------------------------------------\n";
+
+    if(activeJobs.empty())
+    {
+        s << "(No Active Jobs)\n";
+    }
+    else
+    {
+        for(auto& i : activeJobs)
+        {
+            s << left << setw(8) << setfill(' ') << i.id << "| ";
+            s << left << setw(24) << setfill(' ') << i.info.description << "| ";
+            s << left << setw(11) << setfill(' ') << i.ticksRemaining << "| ";
+            s << getProcString(i.info.numProcs, i.procsUsed.get()) << '\n';
+        }
+    }
+}
+
+/*
+
+    typedef std::multimap<unsigned, ScheduledJob>   queue_t;
+    queue_t                     waitQueue;
+    std::list<ScheduledJob>     activeJobs;
+    */
+
+void Scheduler::printWaitQueue(std::ostream& s) const
+{
+    using namespace std;
+    
+    s << "Wait Queue (top is next in queue):\n";
+    s << "Job Id  | Job Description         | Ticks Left |  Num Procs Needed\n";
+    s << "----------------------------------------------------------------\n";
+    
+    if(waitQueue.empty())
+    {
+        s << "(Wait Queue is empty)\n";
+    }
+    else
+    {
+        for(auto& item : waitQueue)
+        {
+            auto& i = item.second;
+            s << left << setw(8) << setfill(' ') << i.id << "| ";
+            s << left << setw(24) << setfill(' ') << i.info.description << "| ";
+            s << left << setw(11) << setfill(' ') << i.ticksRemaining << "| ";
+            s << i.info.numProcs << '\n';
+        }
     }
 }
