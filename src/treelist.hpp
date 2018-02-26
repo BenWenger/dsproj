@@ -174,7 +174,7 @@ void TreeList<T>::validate() const
     if(!root)                   return;
 
     int treecount = validateTree(root, 100);
-    int listcount = validateList(head, 200);
+    int listcount = validateList(head, 500);
 
     if(treecount != listcount)
         throw std::runtime_error("treecount / listcount mismatch");
