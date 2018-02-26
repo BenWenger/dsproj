@@ -78,5 +78,8 @@ int main(int argc, char* argv[])
     }
 
     std::cout << "Scheduler started with " << numprocs << " processors.\n";
+    std::cout << "To add a job, type <jobname> <num processors> <num ticks>.\n";
+    std::cout << "To run for any number of ticks, input the number of ticks (0 is valid).\n";
+    std::cout << "To exit, type \"exit\".\n";
     runprogram(numprocs);
 }

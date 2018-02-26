@@ -64,7 +64,7 @@ bool Scheduler::isJobIdInUse(jobid_t id) const
 
 void Scheduler::putJobInWaitQueue( ScheduledJob&& job )
 {
-    waitQueue.insert( queue_t::value_type( job.ticksRemaining, std::move(job) ) );
+    waitQueue.insert( std::move(job) );
 }
 
 //////////////////////////////////////////////
@@ -97,42 +97,6 @@ void Scheduler::runActiveJobs()
     }
 }
 
-void Scheduler::freeProcessors(const ScheduledJob& job)
-{
-    for(unsigned i = 0; i < job.info.numProcs; ++i)
-    {
-        auto prid = job.procsUsed[i];
-        if(prid == NoProc)
-            throw SchedulerException("Internal Error:  freeProcessors called on a job with unassigned procs");
-
-        availProcs.push_back(prid);
-        processors[prid] = NoJob;
-    }
-
-    needProcAssign = true;
-}
-
-void Scheduler::assignProcs()
-{
-    auto i = waitQueue.begin();
-
-    //  keep looping as long as we have waiting jobs and available processors
-    while(i != waitQueue.end() && !availProcs.empty())
-    {
-        // can we service this job?
-        if(availProcs.size() >= i->second.info.numProcs)
-        {
-            allocateProcessors(i->second);
-            activeJobs.push_back( std::move(i->second) );
-            i = waitQueue.erase(i);
-        }
-        else
-            ++i;
-    }
-
-    needProcAssign = false;
-}
-
 void Scheduler::allocateProcessors(ScheduledJob& job)
 {
     for(unsigned i = 0; i < job.info.numProcs; ++i)
@@ -144,6 +108,96 @@ void Scheduler::allocateProcessors(ScheduledJob& job)
 
         availProcs.pop_back();
     }
+}
+
+void Scheduler::freeProcessors(ScheduledJob& job)
+{
+    for(unsigned i = 0; i < job.info.numProcs; ++i)
+    {
+        auto prid = job.procsUsed[i];
+        job.procsUsed[i] = NoProc;
+        if(prid == NoProc)
+            throw SchedulerException("Internal Error:  freeProcessors called on a job with unassigned procs");
+
+        availProcs.push_back(prid);
+        processors[prid] = NoJob;
+    }
+
+    needProcAssign = true;
+}
+
+// This is the logic for actually determining which processors get assigned to which jobs.
+//   This will pull items out of the wait queue and put them in the active list.
+//   (and vice versa, depending on the algorithm)
+//
+// Current algorithm:
+//  - Wait queue is ordered as follows:
+//          -- lowest ticks remaining first
+//          -- highest proc count next
+//  - This function will walk through the queue and fill up processors as able.
+//  - If the next entry in the queue needs more procs than is available, skip it
+//      and keep walking through the queue and take the next item that fits
+//  - Continue until all procs used or we walked through the entire wait queue
+//
+//
+// Additional tidbit:
+//    Before running above logic, look at the first entry in the wait queue.
+//  If we can swap out jobs that are currently running (but have a higher tick count) than
+//  that job to make room for that job, do so.
+
+void Scheduler::assignProcs()
+{
+    // nothing to do here if the wait queue is empty
+    if(waitQueue.empty())       return;     
+
+    // Next job in the wait queue is 'next'.  If there are jobs running that have a higher tick count
+    //   than 'next', see if booting them out will create enough room for next.  If yes, do that.
+    auto& next = *waitQueue.begin();
+
+    auto avail = availProcs.size();
+    if(avail < next.info.numProcs)     // only do this if we don't have enough to run 'next'
+    {
+        std::vector<activelst_t::iterator>  bootable;
+        for(auto i = activeJobs.begin(); i != activeJobs.end(); ++i)
+        {
+            if(next.ticksRemaining < i->ticksRemaining)
+            {
+                bootable.push_back(i);
+                avail += i->info.numProcs;
+            }
+        }
+
+        // if we boot all bootable jobs, would that free up enough procs?  If yes, do it
+        if(avail >= next.info.numProcs)
+        {
+            for(auto& i : bootable)
+            {
+                freeProcessors(*i);
+                waitQueue.insert( std::move(*i) );
+                activeJobs.erase(i);
+            }
+        }
+    }
+
+    //  Now run the "main" logic... just walk through the wait queue in order and make
+    //     jobs active.
+    auto i = waitQueue.begin();
+
+    //  keep looping as long as we have waiting jobs and available processors
+    while(i != waitQueue.end() && !availProcs.empty())
+    {
+        // can we service this job?
+        if(availProcs.size() >= i->info.numProcs)
+        {
+            allocateProcessors(*i);
+            activeJobs.push_back( std::move(*i) );
+            i = waitQueue.erase(i);
+        }
+        else
+            ++i;
+    }
+
+    needProcAssign = false;
 }
 
 
@@ -189,12 +243,6 @@ void Scheduler::printActiveJobs(std::ostream& s) const
     }
 }
 
-/*
-
-    typedef std::multimap<unsigned, ScheduledJob>   queue_t;
-    queue_t                     waitQueue;
-    std::list<ScheduledJob>     activeJobs;
-    */
 
 void Scheduler::printWaitQueue(std::ostream& s) const
 {
@@ -210,9 +258,8 @@ void Scheduler::printWaitQueue(std::ostream& s) const
     }
     else
     {
-        for(auto& item : waitQueue)
+        for(auto& i : waitQueue)
         {
-            auto& i = item.second;
             s << left << setw(8) << setfill(' ') << i.id << "| ";
             s << left << setw(24) << setfill(' ') << i.info.description << "| ";
             s << left << setw(11) << setfill(' ') << i.ticksRemaining << "| ";

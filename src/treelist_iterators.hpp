@@ -14,6 +14,9 @@ public:
     
     T& operator * ()                    { return node->obj;    }
     const T& operator * () const        { return node->obj;    }
+    
+    T* operator -> ()                   { return &node->obj;   }
+    const T* operator -> () const       { return &node->obj;   }
 
 private:
     typedef TreeList<T>         Host;
@@ -37,6 +40,7 @@ public:
     const_iterator  operator ++ (int)         { auto tmp = *this; ++(*this);  return tmp;     }
     
     const T& operator * () const              { return node->obj;   }
+    const T* operator -> () const       { return &node->obj;   }
 
 private:
     typedef TreeList<T>         Host;

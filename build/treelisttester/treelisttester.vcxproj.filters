@@ -7,7 +7,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\treelistmain.cpp">
+    <ClCompile Include="..\..\src\treelist_tester.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
