@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C39BB379-0AC6-4878-BEFE-78A4EEDA2E5D}</ProjectGuid>
-    <RootNamespace>dsproj</RootNamespace>
+    <ProjectGuid>{4B80EFB5-54E3-4A6D-BFF1-989453A39DF1}</ProjectGuid>
+    <RootNamespace>treelisttester</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -125,16 +125,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\job.h" />
-    <ClInclude Include="..\src\scheduler.h" />
-    <ClInclude Include="..\src\treelist.h" />
-    <ClInclude Include="..\src\treelist.hpp" />
-    <ClInclude Include="..\src\treelist_iterators.hpp" />
-    <ClInclude Include="..\src\types.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\scheduler.cpp" />
+    <ClCompile Include="..\..\src\treelistmain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

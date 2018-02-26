@@ -16,6 +16,15 @@
     <ClInclude Include="..\src\types.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\treelist.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\treelist.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\treelist_iterators.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\scheduler.cpp">
