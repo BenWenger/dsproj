@@ -1,0 +1,16 @@
+To build:
+    make all
+
+To run treelist test program (which tests to make sure my TreeList class
+operates as intended):
+    ./tester
+    
+To run the scheduler:
+    ./scheduler <num_procs>
+    
+    If <num_procs> is not provided, the program will default to using
+    5 processors (I know this is not realistic -- I just chose it
+    arbitrarily)
+    
+    
+Instructions for how to use the scheduler are printed when you start it.

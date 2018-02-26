@@ -38,9 +38,7 @@ bool Scheduler::addJob(const JobInfo& jobinfo)
 
     putJobInWaitQueue( std::move(job) );
 
-    // if we have the available processors to run this job, flag that we need to assign procs
-    if(availProcs.size() >= jobinfo.numProcs)
-        needProcAssign = true;
+    needProcAssign = true;
 
     return true;
 }

@@ -1,0 +1,89 @@
+Ben Wenger  (wenben02)
+SOS Data Structures
+Project 1 (Scheduler)
+Summary!
+
+====================================
+What I've completed
+====================================
+    I've written my own container class for the wait queue, called "TreeList".
+It is effectively a BST with prev/next pointers as well as child pointers so that
+it can be traversed like a linked list.
+
+    The scheduler will track all active jobs as well as which processors are
+assigned to which jobs.  When selecting jobs to run, preference is given to
+"shortest job" first, and "most processors required" next.
+
+    Additionally, if there are jobs currently running that need more time than
+the next job in the wait queue, I potentially swap the active jobs out.
+
+
+====================================
+Scheduling Algorithm
+====================================
+    For the scheduler, I focus on shortest job first, but also try to maximize
+processor usage.  The algorithm for this is broken into two phases:
+    
+    Phase 1:  Swap out jobs if they have a long run time
+    
+ - The next job in the wait queue ('next') is examined
+ - If there are enough free processors to service 'next', skip the rest of
+    this phase because we don't need to swap anything out.
+ - Otherwise, walk through the active jobs, count the processors used by
+    all jobs that have a tick count higher than 'next'
+ - If those processors + the number of available processors is greater than
+    the processors required to service 'next' (in other words, if swapping those
+    job out would allow us to swap in 'next'), swap all those jobs out.
+    
+    Phase 2:  Swap in jobs
+    
+ - Traverse the wait queue linearly.
+ - If we have enough processors to service a job, swap that job in. Otherwise
+    skip it and look at the next job in the queue
+ - Continue until all processors are occupied or until we have traversed the
+    entire wait queue
+    
+    
+    The above logic is not run every tick, but instead is run only when a job
+has been added to the wait queue, or when a job has run to completion and has
+been removed from the active job list.
+
+
+====================================
+Wait Queue structure and complexity
+====================================
+
+    For my wait queue, I knew I had the following requirements:
+    
+ - I wanted it prioritized by job length (and processor usage)
+ - I knew it was going to be traversed linearly, so I wanted it to be strictly
+    ordered, so a heap would not suffice.
+ - I needed to be able to insert and remove jobs from any position
+ 
+    For these requirements, I felt a BST suited my needs the best.  But I also
+wanted that linear traversal, so I made a BST with 'prev' and 'next' pointers
+to connect nodes so it could be traversed like a linked list.  I called
+the class a "TreeList" since it was sort of a combination of a BST and a Linked
+List.  Even though it's really just a BST.
+
+    This structure allows for low time complexity for many operations:
+    
+    
+Insertion:  Worst case:  O(n)
+            Typical:     O(log n)
+    Since the tree is not self balancing, it is possible to have a very
+unbalanced tree, which would result in O(n) insertion.  Typically, though,
+BST insertion is O(log n)
+
+Finding an element:  Worst case:  O(n)
+                     Typical:     O(log n)
+    Effectively the same as insertion.  Though this functionality is not
+used by the scheduler, as I never need to find a specific job by any key.
+
+Deletion:  Worse case:  O(1)
+    Removal of any element can be done in constant time, by just swapping
+out pointers.
+
+
+Traversal:  Worst case:  O(n)
+    The entire queue can be traversed linearly like a linked list.

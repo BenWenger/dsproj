@@ -11,3 +11,9 @@ scheduler: main.o scheduler.o
 tester: treelist_tester.o
 	$(CC) -o tester treelist_tester.o $(CFLAGS)
 	
+all:  scheduler tester
+
+clean:
+	rm -f *.o
+	rm -f tester
+	rm -f scheduler
